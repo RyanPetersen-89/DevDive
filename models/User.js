@@ -22,9 +22,4 @@ const User = sequelize.define('User', {
   }
 });
 
-// This syncs the User model with the database
-(async () => {
-  await sequelize.sync(); // This will create a User table if it doesn't already exist
-})();
-
 module.exports = User;

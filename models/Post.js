@@ -7,18 +7,10 @@ const Post = sequelize.define('Post', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  content:{
+  content: {
     type: DataTypes.TEXT,
-    allowNull: false
-  },
-  userId: {
-    type: DataTypes.INTERGER,
     allowNull: false
   }
 });
-// This will sync the Post model with the database
-(async () => {
-  await Post.sync(); // This will create a post table if it doesn't already exist
-})();
 
 module.exports = Post;
