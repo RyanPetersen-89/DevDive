@@ -1,37 +1,48 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const session = require('express-session');
-const sequelize = require('./config/sequelize')
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
+const sequelize = require('./config/sequelize');
+const path = require('path');
 
-// This will load my enviroment variables from my .env file
+// This loads environment variables from .env file
 dotenv.config();
 
-// This will create an instance of the Express application
+// This create an instance of the Express application
 const app = express();
 
-// Middleware to parse incoming request with JSON and URL-Endoded Payloads
+// The middleware to parse incoming JSON and URL-encoded payloads
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(express.urlencoded({extended:true}));
-
-// This will configure sessions using express session which makes it easier to handle secure user sessions
+// This configures sessions using express-session
 app.use(session({
-  secret:process.env.SESSION_SECRET,
+  secret: process.env.SESSION_SECRET, // This uses a secret from environment variables
+  store: new SequelizeStore({
+    db: sequelize,
+    checkExpirationInterval: 15 * 60 * 1000, // Sets the interval at which expired sessions will be cleared
+    expiration: 24 * 60 * 60 * 1000  // This sets the max time of a valid session
+  }),
   resave: false,
-  saceUninitialized: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
 }));
 
-// Handles files from the 'public' directory
+// This serves static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// These define my routes for HTML views and API endpoints
+// This defines routes for HTML views and API endpoints
 app.use('/', require('./routes/html/index'));
 app.use('/api', require('./routes/api/index'));
 
-// This defines the port to listen on, based on the port that I specified in my .env file
-const PORT = process.env.PORT||3001;
+// This defines the port to listen on, based on the specified environment variable or default to 3001
+const PORT = process.env.PORT || 3001;
 
-// This will sequelize models with the database and start the server
+// This syncs Sequelize models with the database and start the server
 sequelize.sync().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
