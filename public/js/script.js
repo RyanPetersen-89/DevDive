@@ -1,3 +1,5 @@
+console.log('JavaScript is working!');
+
 function logout() {
   fetch('/api/users/logout', {
       method: 'POST'
@@ -9,3 +11,5 @@ function logout() {
   })
   .catch(error => console.error('Error:', error));
 }
+
+console.log('JavaScript is working!');

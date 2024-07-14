@@ -5,6 +5,7 @@ const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const sequelize = require('./config/sequelize');
 const path = require('path');
 const exphbs = require('express-handlebars');
+const fs = require('fs');
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +28,34 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files from the 'public' directory
+const publicPath = path.join(__dirname, 'public');
+console.log('Serving static files from:', publicPath);
+app.use(express.static(publicPath));
+
+// Log contents of the public directory
+fs.readdir(publicPath, (err, files) => {
+    if (err) {
+        console.error('Error reading public directory:', err);
+    } else {
+        console.log('Files in public directory:', files);
+        files.forEach(file => {
+            console.log(`- ${file}`);
+        });
+    }
+});
+
+// Log each static file request
+app.use((req, res, next) => {
+    console.log('Request URL:', req.url);
+    next();
+});
+
+// Test route to serve the CSS file directly
+app.get('/test-css', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/css/style.css'));
+});
+
 // Configure sessions using express-session
 app.use(session({
   secret: process.env.SESSION_SECRET, // Use a secret from environment variables
@@ -43,9 +72,6 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000 // Cookie expires in 24 hours
   }
 }));
-
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
 
 // Import routes
 const userRoutes = require('./routes/api/userRoutes');
