@@ -53,7 +53,14 @@ app.use((req, res, next) => {
 
 // Test route to serve the CSS file directly
 app.get('/test-css', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public/css/style.css'));
+    const cssPath = path.join(__dirname, 'public/css/style.css');
+    console.log('Attempting to serve:', cssPath);
+    res.sendFile(cssPath, (err) => {
+        if (err) {
+            console.error('Error serving CSS file:', err);
+            res.status(500).send('Internal Server Error');
+        }
+    });
 });
 
 // Configure sessions using express-session
