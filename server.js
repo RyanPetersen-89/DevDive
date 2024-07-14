@@ -4,49 +4,79 @@ const session = require('express-session');
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const sequelize = require('./config/sequelize');
 const path = require('path');
+const exphbs = require('express-handlebars');
 
-// This loads environment variables from .env file
+// Load environment variables
 dotenv.config();
 
-// This create an instance of the Express application
+// Create an instance of the Express application
 const app = express();
 
-// The middleware to parse incoming JSON and URL-encoded payloads
+// Set Handlebars as the view engine and configure partials directory
+const hbs = exphbs.create({
+    defaultLayout: 'main',
+    layoutsDir: path.join(__dirname, 'views/layouts'),
+    partialsDir: path.join(__dirname, 'views/partials')
+});
+
+app.engine('handlebars', hbs.engine);
+app.set('view engine', 'handlebars');
+app.set('views', path.join(__dirname, 'views'));
+
+// Middleware to parse incoming JSON and URL-encoded form data
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// This configures sessions using express-session
+// Configure sessions using express-session
 app.use(session({
-  secret: process.env.SESSION_SECRET, // This uses a secret from environment variables
+  secret: process.env.SESSION_SECRET, // Use a secret from environment variables
   store: new SequelizeStore({
     db: sequelize,
-    checkExpirationInterval: 15 * 60 * 1000, // Sets the interval at which expired sessions will be cleared
-    expiration: 24 * 60 * 60 * 1000  // This sets the max time of a valid session
+    checkExpirationInterval: 15 * 60 * 1000, // Interval at which expired sessions will be cleared
+    expiration: 24 * 60 * 60 * 1000  // Maximum age of a valid session
   }),
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    secure: false, // Set to true in production if using HTTPS
+    httpOnly: true, // Prevents client-side JS from accessing the cookie
+    maxAge: 24 * 60 * 60 * 1000 // Cookie expires in 24 hours
   }
 }));
 
-// This serves static files from the 'public' directory
+// Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// This defines routes for HTML views and API endpoints
-app.use('/', require('./routes/html/index'));
-app.use('/api', require('./routes/api/index'));
+// Import routes
+const userRoutes = require('./routes/api/userRoutes');
+const postRoutes = require('./routes/api/postRoutes');
+const userHtmlRoutes = require('./routes/html/userHtmlRoutes');
 
-// This defines the port to listen on, based on the specified environment variable or default to 3001
+// Setup routes
+app.use('/api/users', userRoutes); // User-related API routes
+app.use('/api/posts', postRoutes); // Post-related API routes
+app.use('/', userHtmlRoutes); // User-specific HTML routes (e.g., login, register)
+
+// Catch all for unhandled routes
+app.use((req, res) => {
+  res.status(404).send('Page not found');
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke! Please contact support if the problem persists.');
+});
+
+// Start the server
 const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
-// This syncs Sequelize models with the database and start the server
+// Handle database connection errors
 sequelize.sync().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  console.log('Database synced');
 }).catch(err => {
   console.error('Unable to connect to the database:', err);
 });

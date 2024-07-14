@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 // This loads the environment variables from .env file into process.env
 dotenv.config();
 
+const env = process.env.NODE_ENV || 'development';
+
 // This uses the 'development' configuration from config.json
 const config = require('./config.json')[env];
 

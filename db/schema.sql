@@ -1,0 +1,8 @@
+-- DROP DATABASE
+DROP DATABASE IF EXISTS devdive_db;
+
+-- CREATE DATABASE
+CREATE DATABASE devdive_db;
+
+-- CONNECT DATABASE
+\c devdive_db;

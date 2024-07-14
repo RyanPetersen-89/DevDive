@@ -1,0 +1,17 @@
+{{! Use your main layout that includes your header, navigation, and footer }}
+{{> header }}
+
+<h1>Welcome to the Tech Blog</h1>
+<section class="posts-container">
+  {{#each posts as |post|}}
+    <article class="post">
+      <h2><a href="/posts/{{post.id}}">{{post.title}}</a></h2>
+      <p>{{post.summary}}</p>
+      <div>Posted on {{formatDate post.createdAt}}</div>
+    </article>
+  {{else}}
+    <p>No posts to display.</p>
+  {{/each}}
+</section>
+
+{{> footer }}

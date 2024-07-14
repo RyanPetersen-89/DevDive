@@ -1,0 +1,20 @@
+{{! Use your main layout }}
+{{> header }}
+
+<h1>Dashboard</h1>
+<section class="user-posts">
+  {{#each userPosts as |post|}}
+    <div class="post">
+      <h3>{{post.title}}</h3>
+      <p>{{truncate post.content 120}}</p> {{!-- Helper to truncate text --}}
+      <a href="/edit/{{post.id}}">Edit</a>
+      <button class="delete-post" onclick="deletePost({{post.id}});">Delete</button>
+    </div>
+  {{else}}
+    <p>You have not posted any blogs yet.</p>
+  {{/each}}
+</section>
+<a href="/posts/new">Create New Post</a>
+
+<script src="/js/dashboard.js"></script> {{!-- Script to handle delete operations --}}
+{{> footer }}
