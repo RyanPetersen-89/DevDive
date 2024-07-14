@@ -1,20 +1,23 @@
-{{! Use your main layout }}
 {{> header }}
 
 <h1>Dashboard</h1>
 <section class="user-posts">
-  {{#each userPosts as |post|}}
-    <div class="post">
-      <h3>{{post.title}}</h3>
-      <p>{{truncate post.content 120}}</p> {{!-- Helper to truncate text --}}
-      <a href="/edit/{{post.id}}">Edit</a>
-      <button class="delete-post" onclick="deletePost({{post.id}});">Delete</button>
-    </div>
+  {{#if posts.length}}
+    {{#each posts as |post|}}
+      <div class="post">
+        <h3>{{post.title}}</h3>
+        <p>{{post.content}}</p>
+        <div>Posted on {{formatDate post.createdAt}}</div>
+        <a href="/posts/{{post.id}}/edit">Edit</a>
+        <form action="/api/posts/{{post.id}}?_method=DELETE" method="POST" style="display:inline;">
+          <button type="submit">Delete</button>
+        </form>
+      </div>
+    {{/each}}
   {{else}}
     <p>You have not posted any blogs yet.</p>
-  {{/each}}
+  {{/if}}
 </section>
 <a href="/posts/new">Create New Post</a>
 
-<script src="/js/dashboard.js"></script> {{!-- Script to handle delete operations --}}
 {{> footer }}

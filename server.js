@@ -5,19 +5,35 @@ const SequelizeStore = require('connect-session-sequelize')(session.Store);
 const sequelize = require('./config/sequelize');
 const path = require('path');
 const exphbs = require('express-handlebars');
+const Handlebars = require('handlebars');
 const fs = require('fs');
+const methodOverride = require('method-override');
 
 // Load environment variables
 dotenv.config();
 
+// Custom helper to format dates
+Handlebars.registerHelper('formatDate', function (date) {
+  return new Date(date).toLocaleDateString();
+});
+
 // Create an instance of the Express application
 const app = express();
 
-// Set Handlebars as the view engine and configure partials directory
+// Handlebars runtime options to allow access to prototype properties
 const hbs = exphbs.create({
-    defaultLayout: 'main',
-    layoutsDir: path.join(__dirname, 'views/layouts'),
-    partialsDir: path.join(__dirname, 'views/partials')
+  defaultLayout: 'main',
+  layoutsDir: path.join(__dirname, 'views/layouts'),
+  partialsDir: path.join(__dirname, 'views/partials'),
+  helpers: {
+    formatDate: function (date) {
+      return new Date(date).toLocaleDateString();
+    }
+  },
+  runtimeOptions: {
+    allowProtoPropertiesByDefault: true,
+    allowProtoMethodsByDefault: true,
+  }
 });
 
 app.engine('handlebars', hbs.engine);
@@ -28,6 +44,9 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Use method-override middleware to handle PUT and DELETE methods
+app.use(methodOverride('_method'));
+
 // Serve static files from the 'public' directory
 const publicPath = path.join(__dirname, 'public');
 console.log('Serving static files from:', publicPath);
@@ -35,32 +54,32 @@ app.use(express.static(publicPath));
 
 // Log contents of the public directory
 fs.readdir(publicPath, (err, files) => {
-    if (err) {
-        console.error('Error reading public directory:', err);
-    } else {
-        console.log('Files in public directory:', files);
-        files.forEach(file => {
-            console.log(`- ${file}`);
-        });
-    }
+  if (err) {
+    console.error('Error reading public directory:', err);
+  } else {
+    console.log('Files in public directory:', files);
+    files.forEach(file => {
+      console.log(`- ${file}`);
+    });
+  }
 });
 
 // Log each static file request
 app.use((req, res, next) => {
-    console.log('Request URL:', req.url);
-    next();
+  console.log('Request URL:', req.url);
+  next();
 });
 
 // Test route to serve the CSS file directly
 app.get('/test-css', (req, res) => {
-    const cssPath = path.join(__dirname, 'public/css/style.css');
-    console.log('Attempting to serve:', cssPath);
-    res.sendFile(cssPath, (err) => {
-        if (err) {
-            console.error('Error serving CSS file:', err);
-            res.status(500).send('Internal Server Error');
-        }
-    });
+  const cssPath = path.join(__dirname, 'public/css/style.css');
+  console.log('Attempting to serve:', cssPath);
+  res.sendFile(cssPath, (err) => {
+    if (err) {
+      console.error('Error serving CSS file:', err);
+      res.status(500).send('Internal Server Error');
+    }
+  });
 });
 
 // Configure sessions using express-session
