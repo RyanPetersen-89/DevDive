@@ -4,16 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tech Blog</title>
-    <link rel="stylesheet" href="../../css/styles.css"> <!-- Correct path -->
-    <link rel="icon" href="/assets/imgs/favicon.ico" type="image/x-icon"> <!-- Correct path -->
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     {{> header }}
-
-    {{{body}}} <!-- Content injected here -->
+    
+    {{{ body }}}
+    
+    {{#if loggedIn}}
+        <button id="logout">Logout</button>
+    {{else}}
+        <a href="/login">Login</a>
+    {{/if}}
 
     {{> footer }}
 
-    <script src="/js/script.js"></script> <!-- Correct path -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('JavaScript is working!');
+
+            const logoutButton = document.getElementById('logout');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function() {
+                    fetch('/api/users/logout', {
+                        method: 'POST'
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.href = '/';
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            }
+        });
+    </script>
 </body>
 </html>
